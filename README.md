@@ -1,4 +1,14 @@
 # Week_7
+## DataCamp Completion:
+![Joining in SQL](https://github.com/Nik0deemus/Week_7/blob/371a89f4c7171172d023aaf2551db2934a5d5e2e/Joining%20Data%20in%20SQL.PNG)
+![Intermediate SQL](https://github.com/Nik0deemus/Week_7/blob/371a89f4c7171172d023aaf2551db2934a5d5e2e/Intermediate%20SQL.PNG)
+
+## What is Auto Incrementing?
+An auto increment field is like the index column in Python. You can tell SQL (with various syntax differences for each SQL-handling software) to auto increment your table and that will assign a unique numeric value to each new record. As the name implies, this is done automatically. You can also tweak the number that SQL uses to begin incrementing with. Usually, the increment field is the Primary Key for your table.
+
+## What is the difference between creating a join and creating a subquery?
+In SQL, creating a join differs from creating a subquery in several important ways. Primarily, a join allows you to SELECT any column from any of the joined tables. The data is then joined on a particular column value, and the result is displayed as rows of records. With a subquery, you are really just making a nested query and using it as a filter for the records you want to pull from one table.
+
 
 ## In-Class Activity
 
