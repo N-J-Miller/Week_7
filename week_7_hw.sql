@@ -44,18 +44,17 @@ is probably why film names are assigned film ids, as well. */
 
 -- 4. Show a roster for the staff that includes their email, address, city, and country (not ids)
 
-/* While not explicity told to do so, I did include staff last and first names
-as I figured that is what a roster is. Then it was just a matter of following
-relationship maps to include the desired data in one query with INNER JOINS (which are
-quickly becoming my favorite way to craft queries.)*/
+/* This was just a matter of following the data model to include the desired data in one query with 
+LEFT JOINS (which will include names of employees who may have missing demographic info). In this instance
+that did not matter as there are only two employees in the data set, but it COULD have mattered.*/
 
 SELECT last_name, first_name, email, address, city, country 
 FROM staff
-INNER JOIN address AS ad
+LEFT JOIN address AS ad
 ON ad.address_id = staff.address_id
-INNER JOIN city
+LEFT JOIN city
 ON city.city_id = ad.city_id
-INNER JOIN country
+LEFT JOIN country
 ON country.country_id = city.country_id
 
 -- 5. Show the film_id, title, and length for the movies that were returned from May 15 to 31, 2005
@@ -84,12 +83,13 @@ WHERE rental_rate <
 	FROM film) 
 
 -- 7. Write a join statement to show which movies are rented below the average price for all movies.
+
 SELECT f1.title, f1.rental_rate
 FROM film as f1
-INNER JOIN film as f2
-  ON f1.title = f2.title
-  AND f1.rental_rate < 2.98
-GROUP BY f1.title, f1.rental_rate
+CROSS JOIN film as f2  -- < Creating a join allows us to create conditions of the join
+  GROUP BY f1.title, f1.rental_rate
+  HAVING f1.rental_rate < AVG(f2.rental_rate) -- <I can create this HAVING clause as a condition
+  --of the CROSS JOIN and insert an aggregate function that would not be allowed in a WHERE clause.
 
 
 -- 8. Perform an explain plan on 6 and 7, and describe what you’re seeing and important ways they differ.
@@ -107,10 +107,33 @@ WHERE rental_rate <
 "    ->  Aggregate  (cost=66.50..66.51 rows=1 width=32) (actual time=0.854..0.855 rows=1 loops=1)"
 "          ->  Seq Scan on film film_1  (cost=0.00..64.00 rows=1000 width=6) (actual time=0.009..0.326 rows=1000 loops=1)"
 "Planning Time: 0.575 ms"
-"Execution Time: 1.638 ms"*?
+"Execution Time: 1.638 ms"*?*/
 
 
 -- For number 7: 
+EXPLAIN ANALYZE SELECT f1.title, f1.rental_rate
+FROM film as f1
+CROSS JOIN film as f2
+  GROUP BY f1.title, f1.rental_rate
+  HAVING f1.rental_rate < AVG(f2.rental_rate)
+
+--   "HashAggregate  (cost=20130.50..20145.50 rows=333 width=21) (actual time=6406.909..6412.282 rows=341 loops=1)"
+-- "  Group Key: f1.title, f1.rental_rate"
+-- "  Filter: (f1.rental_rate < avg(f2.rental_rate))"
+-- "  Batches: 1  Memory Usage: 577kB"
+-- "  Batches: 1  Memory Usage: 577kB"
+-- "  Nested Loop  (cost=0.00..12630.50 rows=1000000 width=27) (actual time=0.062..1630.065 rows=1000000 loops=1)"
+-- "  Seq Scan on film f1  (cost=0.00..64.00 rows=1000 width=21) (actual time=0.034..13.487 rows=1000 loops=1)" 
+-- " Materialize  (cost=0.00..69.00 rows=1000 width=6) (actual time=0.000..0.176 rows=1000 loops=1000)"
+-- " Seq Scan on film f2  (cost=0.00..64.00 rows=1000 width=6) (actual time=0.011..0.572 rows=1000 loops=1)"
+-- "Planning Time: 0.390 ms"
+-- "Execution Time: 1965.343 ms"
+
+
+/* The execution plan shows that -in this instance- writing a subquery
+was a much more efficient piece of coding than cross joining every row of each table 
+before filtering that join for desired data. */
+
 
 -- 9. With a window function, write a query that shows the film, its duration, and what percentile the duration fits into. This may help https://mode.com/sql-tutorial/sql-window-functions/#rank-and-dense_rank 
 /* A window function is indicated by the 'OVER' and defined by the (ORDER BY) in my query. I'm telling the program that
